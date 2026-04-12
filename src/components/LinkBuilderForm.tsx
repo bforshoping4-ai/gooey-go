@@ -33,7 +33,6 @@ const LinkBuilderForm = () => {
   const [showUtm, setShowUtm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   console.log("[LinkBuilderForm] Render state:", { form, generatedLink, shortCode, showUtm });
 
