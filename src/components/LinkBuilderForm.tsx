@@ -69,10 +69,13 @@ const LinkBuilderForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     console.log("[LinkBuilderForm] Generate button clicked");
 
     if (!validate()) return;
+
+    setIsLoading(true);
+    console.log("[LinkBuilderForm] Starting link generation...");
 
     try {
       const utmUrl = buildUtmUrl(form);
@@ -81,15 +84,41 @@ const LinkBuilderForm = () => {
       console.log("[LinkBuilderForm] Generated short code:", code);
       console.log("[LinkBuilderForm] UTM URL:", utmUrl);
 
+      // Insert into Supabase
+      console.log("[LinkBuilderForm] Inserting link into Supabase...");
+      const { data, error } = await supabase.from("links").insert({
+        original_url: utmUrl,
+        short_code: code,
+        utm_source: form.utmSource.trim() || null,
+        utm_medium: form.utmMedium.trim() || null,
+        utm_campaign: form.utmCampaign.trim() || null,
+        utm_term: form.utmTerm.trim() || null,
+        utm_content: form.utmContent.trim() || null,
+      }).select().single();
+
+      if (error) {
+        console.error("[LinkBuilderForm] Supabase insert error:", error);
+        if (error.code === "23505") {
+          toast.error("This alias is already taken. Try a different one.");
+        } else {
+          toast.error("Failed to save link. Please try again.");
+        }
+        return;
+      }
+
+      console.log("[LinkBuilderForm] Link saved to Supabase:", data);
+
       setGeneratedLink(utmUrl);
       setShortCode(code);
       setCopied(false);
 
-      toast.success("Link generated successfully!");
+      toast.success("Link generated and saved!");
       console.log("[LinkBuilderForm] Link generation complete");
     } catch (err) {
       console.error("[LinkBuilderForm] Error generating link:", err);
       toast.error("Failed to generate link. Check your URL.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
