@@ -225,11 +225,16 @@ const LinkBuilderForm = () => {
       {/* Generate Button */}
       <Button
         onClick={handleGenerate}
+        disabled={isLoading}
         className="w-full h-11 rounded-lg font-medium text-sm"
         size="lg"
       >
-        <Sparkles className="h-4 w-4 mr-2" />
-        Generate Short Link
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <Sparkles className="h-4 w-4 mr-2" />
+        )}
+        {isLoading ? "Saving..." : "Generate Short Link"}
       </Button>
 
       {/* Result */}
