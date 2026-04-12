@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import { Link2, Sparkles, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Link2, Sparkles, Copy, Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { generateShortCode, buildUtmUrl, type UTMLinkData } from "@/lib/url-utils";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const INITIAL_FORM: UTMLinkData = {
