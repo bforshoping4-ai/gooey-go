@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import { Link2, Sparkles, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Link2, Sparkles, Copy, Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { generateShortCode, buildUtmUrl, type UTMLinkData } from "@/lib/url-utils";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const INITIAL_FORM: UTMLinkData = {
@@ -31,6 +32,7 @@ const LinkBuilderForm = () => {
   const [copied, setCopied] = useState(false);
   const [showUtm, setShowUtm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   console.log("[LinkBuilderForm] Render state:", { form, generatedLink, shortCode, showUtm });
 
@@ -67,10 +69,13 @@ const LinkBuilderForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     console.log("[LinkBuilderForm] Generate button clicked");
 
     if (!validate()) return;
+
+    setIsLoading(true);
+    console.log("[LinkBuilderForm] Starting link generation...");
 
     try {
       const utmUrl = buildUtmUrl(form);
@@ -79,15 +84,41 @@ const LinkBuilderForm = () => {
       console.log("[LinkBuilderForm] Generated short code:", code);
       console.log("[LinkBuilderForm] UTM URL:", utmUrl);
 
+      // Insert into Supabase
+      console.log("[LinkBuilderForm] Inserting link into Supabase...");
+      const { data, error } = await supabase.from("links").insert({
+        original_url: utmUrl,
+        short_code: code,
+        utm_source: form.utmSource.trim() || null,
+        utm_medium: form.utmMedium.trim() || null,
+        utm_campaign: form.utmCampaign.trim() || null,
+        utm_term: form.utmTerm.trim() || null,
+        utm_content: form.utmContent.trim() || null,
+      }).select().single();
+
+      if (error) {
+        console.error("[LinkBuilderForm] Supabase insert error:", error);
+        if (error.code === "23505") {
+          toast.error("This alias is already taken. Try a different one.");
+        } else {
+          toast.error("Failed to save link. Please try again.");
+        }
+        return;
+      }
+
+      console.log("[LinkBuilderForm] Link saved to Supabase:", data);
+
       setGeneratedLink(utmUrl);
       setShortCode(code);
       setCopied(false);
 
-      toast.success("Link generated successfully!");
+      toast.success("Link generated and saved!");
       console.log("[LinkBuilderForm] Link generation complete");
     } catch (err) {
       console.error("[LinkBuilderForm] Error generating link:", err);
       toast.error("Failed to generate link. Check your URL.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -194,11 +225,16 @@ const LinkBuilderForm = () => {
       {/* Generate Button */}
       <Button
         onClick={handleGenerate}
+        disabled={isLoading}
         className="w-full h-11 rounded-lg font-medium text-sm"
         size="lg"
       >
-        <Sparkles className="h-4 w-4 mr-2" />
-        Generate Short Link
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <Sparkles className="h-4 w-4 mr-2" />
+        )}
+        {isLoading ? "Saving..." : "Generate Short Link"}
       </Button>
 
       {/* Result */}
