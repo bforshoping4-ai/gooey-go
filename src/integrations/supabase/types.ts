@@ -61,7 +61,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_clicks: { Args: { p_short_code: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
