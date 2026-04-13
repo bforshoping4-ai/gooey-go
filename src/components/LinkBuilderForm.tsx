@@ -124,7 +124,7 @@ const LinkBuilderForm = () => {
 
   const handleCopy = async () => {
     if (!generatedLink || !shortCode) return;
-    const textToCopy = `short.link/${shortCode}`;
+    const textToCopy = `${window.location.origin}/${shortCode}`;
     console.log("[LinkBuilderForm] Copying to clipboard:", textToCopy);
 
     try {
@@ -175,7 +175,7 @@ const LinkBuilderForm = () => {
           Custom Alias <span className="text-muted-foreground font-normal">(optional)</span>
         </Label>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">short.link/</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{window.location.origin}/</span>
           <Input
             id="customAlias"
             placeholder="my-custom-alias"
@@ -243,7 +243,7 @@ const LinkBuilderForm = () => {
           <p className="text-xs text-muted-foreground">Your shortened link</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 text-sm font-medium text-foreground bg-background rounded-md px-3 py-2 border border-input truncate">
-              short.link/{shortCode}
+              {window.location.origin}/{shortCode}
             </code>
             <Button
               variant="outline"
