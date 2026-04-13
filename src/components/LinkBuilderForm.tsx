@@ -117,6 +117,7 @@ const LinkBuilderForm = ({ onLinkCreated }: LinkBuilderFormProps) => {
       setCopied(false);
 
       toast.success("Link generated and saved!");
+      onLinkCreated?.();
       console.log("[LinkBuilderForm] Link generation complete");
     } catch (err) {
       console.error("[LinkBuilderForm] Error generating link:", err);
