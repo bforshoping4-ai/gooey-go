@@ -25,7 +25,11 @@ const UTM_FIELDS: { key: keyof UTMLinkData; label: string; placeholder: string }
   { key: "utmContent", label: "Content", placeholder: "e.g. banner_v2" },
 ];
 
-const LinkBuilderForm = () => {
+interface LinkBuilderFormProps {
+  onLinkCreated?: () => void;
+}
+
+const LinkBuilderForm = ({ onLinkCreated }: LinkBuilderFormProps) => {
   const [form, setForm] = useState<UTMLinkData>(INITIAL_FORM);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [shortCode, setShortCode] = useState<string | null>(null);
