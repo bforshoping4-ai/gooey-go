@@ -127,7 +127,24 @@ const LandingPage = () => {
           </p>
 
           {/* Anonymous Shortener Form */}
-          {!shortCode ? (
+          {limitReached && !shortCode ? (
+            <div className="max-w-lg mx-auto">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center space-y-3">
+                <p className="text-sm font-semibold text-foreground">
+                  You've reached your free limit!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Create a free account to create unlimited links, track clicks, and use custom aliases.
+                </p>
+                <Button size="lg" asChild className="rounded-lg h-11 px-8 text-sm font-medium">
+                  <Link to="/auth">
+                    Create a free account
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : !shortCode ? (
             <div className="max-w-lg mx-auto space-y-3">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -159,6 +176,7 @@ const LandingPage = () => {
                 </Button>
               </div>
               {error && <p className="text-sm text-destructive text-left">{error}</p>}
+              <p className="text-xs text-muted-foreground">{ANON_LIMIT - anonCount} free link{ANON_LIMIT - anonCount !== 1 ? "s" : ""} remaining</p>
             </div>
           ) : (
             <div className="max-w-lg mx-auto space-y-4">
