@@ -41,7 +41,18 @@ const LandingPage = () => {
             </Link>
           </Button>
         </div>
-      </main>
+    </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>© 2026 Sniplink. All rights reserved.</span>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
