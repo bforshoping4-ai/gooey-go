@@ -1,9 +1,83 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Link2, ArrowRight } from "lucide-react";
+import { Link2, ArrowRight, Copy, Check, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { generateShortCode } from "@/lib/url-utils";
+import { toast } from "sonner";
 
 const LandingPage = () => {
+  const [url, setUrl] = useState("");
+  const [shortCode, setShortCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   console.log("[LandingPage] Rendering public landing page");
+
+  const handleShorten = async () => {
+    console.log("[LandingPage] Shorten clicked, url:", url);
+    setError("");
+
+    if (!url.trim()) {
+      setError("Please enter a URL");
+      return;
+    }
+
+    try {
+      new URL(url);
+    } catch {
+      setError("Enter a valid URL (e.g. https://example.com)");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const code = generateShortCode();
+      console.log("[LandingPage] Inserting anonymous link with code:", code);
+
+      const { error: dbError } = await supabase.from("links").insert({
+        original_url: url,
+        short_code: code,
+      });
+
+      if (dbError) {
+        console.error("[LandingPage] Insert error:", dbError);
+        toast.error("Failed to shorten link. Please try again.");
+        return;
+      }
+
+      setShortCode(code);
+      toast.success("Link shortened!");
+      console.log("[LandingPage] Anonymous link created:", code);
+    } catch (err) {
+      console.error("[LandingPage] Error:", err);
+      toast.error("Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!shortCode) return;
+    const link = `${window.location.origin}/${shortCode}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast.success("Link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const handleReset = () => {
+    setUrl("");
+    setShortCode(null);
+    setCopied(false);
+    setError("");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -34,14 +108,83 @@ const LandingPage = () => {
           <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
             Create short, trackable URLs with UTM parameters. Simple, fast, and no clutter.
           </p>
-          <Button size="lg" asChild className="rounded-lg h-12 px-8 text-sm font-medium">
-            <Link to="/auth">
-              Get Started
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
+
+          {/* Anonymous Shortener Form */}
+          {!shortCode ? (
+            <div className="max-w-lg mx-auto space-y-3">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="https://example.com/my-long-url"
+                    value={url}
+                    onChange={(e) => {
+                      setUrl(e.target.value);
+                      setError("");
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleShorten()}
+                    className="pl-10 h-12 bg-background border-input rounded-lg text-sm"
+                  />
+                </div>
+                <Button
+                  onClick={handleShorten}
+                  disabled={isLoading}
+                  className="h-12 px-6 rounded-lg font-medium text-sm shrink-0"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-1.5" />
+                      Shorten
+                    </>
+                  )}
+                </Button>
+              </div>
+              {error && <p className="text-sm text-destructive text-left">{error}</p>}
+            </div>
+          ) : (
+            <div className="max-w-lg mx-auto space-y-4">
+              {/* Result */}
+              <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Your shortened link</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-sm font-medium text-foreground bg-background rounded-md px-3 py-2 border border-input truncate">
+                    {window.location.origin}/{shortCode}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopy}
+                    className="shrink-0 h-9 w-9 rounded-lg"
+                  >
+                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Shorten another link
+                </button>
+              </div>
+
+              {/* Upsell CTA */}
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
+                <p className="text-sm font-medium text-foreground">
+                  Want to track clicks and add UTM parameters?
+                </p>
+                <Button size="sm" asChild className="rounded-lg h-9 text-sm">
+                  <Link to="/auth">
+                    Create a free account
+                    <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-    </main>
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-border py-6">
