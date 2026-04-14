@@ -7,12 +7,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateShortCode } from "@/lib/url-utils";
 import { toast } from "sonner";
 
+const ANON_LIMIT = 3;
+const STORAGE_KEY = "sniplink_anon_count";
+
+const getAnonCount = (): number => {
+  try { return parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10); }
+  catch { return 0; }
+};
+
+const incrementAnonCount = () => {
+  try { localStorage.setItem(STORAGE_KEY, String(getAnonCount() + 1)); }
+  catch { /* noop */ }
+};
+
 const LandingPage = () => {
   const [url, setUrl] = useState("");
   const [shortCode, setShortCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [anonCount, setAnonCount] = useState(getAnonCount);
+  const limitReached = anonCount >= ANON_LIMIT;
 
   console.log("[LandingPage] Rendering public landing page");
 
