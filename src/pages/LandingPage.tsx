@@ -7,12 +7,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateShortCode } from "@/lib/url-utils";
 import { toast } from "sonner";
 
+const ANON_LIMIT = 3;
+const STORAGE_KEY = "sniplink_anon_count";
+
+const getAnonCount = (): number => {
+  try { return parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10); }
+  catch { return 0; }
+};
+
+const incrementAnonCount = () => {
+  try { localStorage.setItem(STORAGE_KEY, String(getAnonCount() + 1)); }
+  catch { /* noop */ }
+};
+
 const LandingPage = () => {
   const [url, setUrl] = useState("");
   const [shortCode, setShortCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [anonCount, setAnonCount] = useState(getAnonCount);
+  const limitReached = anonCount >= ANON_LIMIT;
 
   console.log("[LandingPage] Rendering public landing page");
 
@@ -48,6 +63,8 @@ const LandingPage = () => {
         return;
       }
 
+      incrementAnonCount();
+      setAnonCount(getAnonCount());
       setShortCode(code);
       toast.success("Link shortened!");
       console.log("[LandingPage] Anonymous link created:", code);
@@ -110,7 +127,24 @@ const LandingPage = () => {
           </p>
 
           {/* Anonymous Shortener Form */}
-          {!shortCode ? (
+          {limitReached && !shortCode ? (
+            <div className="max-w-lg mx-auto">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center space-y-3">
+                <p className="text-sm font-semibold text-foreground">
+                  You've reached your free limit!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Create a free account to create unlimited links, track clicks, and use custom aliases.
+                </p>
+                <Button size="lg" asChild className="rounded-lg h-11 px-8 text-sm font-medium">
+                  <Link to="/auth">
+                    Create a free account
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : !shortCode ? (
             <div className="max-w-lg mx-auto space-y-3">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -142,6 +176,7 @@ const LandingPage = () => {
                 </Button>
               </div>
               {error && <p className="text-sm text-destructive text-left">{error}</p>}
+              <p className="text-xs text-muted-foreground">{ANON_LIMIT - anonCount} free link{ANON_LIMIT - anonCount !== 1 ? "s" : ""} remaining</p>
             </div>
           ) : (
             <div className="max-w-lg mx-auto space-y-4">
@@ -171,9 +206,16 @@ const LandingPage = () => {
 
               {/* Upsell CTA */}
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
-                <p className="text-sm font-medium text-foreground">
-                  Want to track clicks and add UTM parameters?
+                <p className="text-sm font-semibold text-foreground">
+                  {limitReached
+                    ? "You've reached your free limit!"
+                    : "Want to track clicks and add UTM parameters?"}
                 </p>
+                {limitReached && (
+                  <p className="text-xs text-muted-foreground">
+                    Create a free account to create unlimited links, track clicks, and use custom aliases.
+                  </p>
+                )}
                 <Button size="sm" asChild className="rounded-lg h-9 text-sm">
                   <Link to="/auth">
                     Create a free account
