@@ -30,7 +30,7 @@ const AuthPage = () => {
 
   if (user) {
     console.log("[AuthPage] User already authenticated, redirecting to /");
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ const AuthPage = () => {
         }
         console.log("[AuthPage] Login successful");
         toast.success("Welcome back!");
-        navigate("/");
+        navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -100,7 +100,7 @@ const AuthPage = () => {
 
       console.log("[AuthPage] Google sign-in successful");
       toast.success("Welcome!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("[AuthPage] Google auth error:", err);
       toast.error("Google sign-in failed.");

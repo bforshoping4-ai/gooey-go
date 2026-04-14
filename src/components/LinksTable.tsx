@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import { Copy, Check, ExternalLink, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,19 @@ const LinksTable = ({ refreshSignal }: LinksTableProps) => {
     fetchLinks();
   }, [fetchLinks, refreshSignal]);
 
+  const handleDelete = async (linkId: string) => {
+    console.log("[LinksTable] Deleting link:", linkId);
+    const { error } = await supabase.from("links").delete().eq("id", linkId);
+    if (error) {
+      console.error("[LinksTable] Delete error:", error);
+      toast.error("Failed to delete link.");
+      return;
+    }
+    console.log("[LinksTable] Link deleted successfully");
+    toast.success("Link deleted.");
+    setLinks((prev) => prev.filter((l) => l.id !== linkId));
+  };
+
   const handleCopy = async (shortCode: string, linkId: string) => {
     const url = `${window.location.origin}/${shortCode}`;
     console.log("[LinksTable] Copying:", url);
@@ -99,6 +112,7 @@ const LinksTable = ({ refreshSignal }: LinksTableProps) => {
               <TableHead className="text-xs font-medium text-muted-foreground">Short Link</TableHead>
               <TableHead className="text-xs font-medium text-muted-foreground">Campaign</TableHead>
               <TableHead className="text-xs font-medium text-muted-foreground text-right">Clicks</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -148,6 +162,16 @@ const LinksTable = ({ refreshSignal }: LinksTableProps) => {
                   <span className="text-sm font-medium text-foreground tabular-nums">
                     {link.clicks_count}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDelete(link.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
