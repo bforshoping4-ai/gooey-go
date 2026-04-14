@@ -206,9 +206,16 @@ const LandingPage = () => {
 
               {/* Upsell CTA */}
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
-                <p className="text-sm font-medium text-foreground">
-                  Want to track clicks and add UTM parameters?
+                <p className="text-sm font-semibold text-foreground">
+                  {limitReached
+                    ? "You've reached your free limit!"
+                    : "Want to track clicks and add UTM parameters?"}
                 </p>
+                {limitReached && (
+                  <p className="text-xs text-muted-foreground">
+                    Create a free account to create unlimited links, track clicks, and use custom aliases.
+                  </p>
+                )}
                 <Button size="sm" asChild className="rounded-lg h-9 text-sm">
                   <Link to="/auth">
                     Create a free account
