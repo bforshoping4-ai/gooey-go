@@ -63,6 +63,8 @@ const LandingPage = () => {
         return;
       }
 
+      incrementAnonCount();
+      setAnonCount(getAnonCount());
       setShortCode(code);
       toast.success("Link shortened!");
       console.log("[LandingPage] Anonymous link created:", code);
