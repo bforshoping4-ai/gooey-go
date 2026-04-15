@@ -3,7 +3,7 @@ import { Link2, Sparkles, Copy, Check, ChevronDown, ChevronUp, Loader2 } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { generateShortCode, buildUtmUrl, type UTMLinkData } from "@/lib/url-utils";
+import { generateShortCode, buildUtmUrl, isValidHttpUrl, type UTMLinkData } from "@/lib/url-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -56,16 +56,16 @@ const LinkBuilderForm = ({ onLinkCreated }: LinkBuilderFormProps) => {
 
     if (!form.originalUrl.trim()) {
       newErrors.originalUrl = "URL is required";
-    } else {
-      try {
-        new URL(form.originalUrl);
-      } catch {
-        newErrors.originalUrl = "Enter a valid URL (e.g. https://example.com)";
-      }
+    } else if (!isValidHttpUrl(form.originalUrl)) {
+      newErrors.originalUrl = "Enter a valid URL starting with http:// or https://";
     }
 
-    if (form.customAlias && !/^[a-zA-Z0-9_-]+$/.test(form.customAlias)) {
-      newErrors.customAlias = "Only letters, numbers, hyphens, and underscores";
+    if (form.customAlias) {
+      if (!/^[a-zA-Z0-9_-]+$/.test(form.customAlias)) {
+        newErrors.customAlias = "Only letters, numbers, hyphens, and underscores";
+      } else if (form.customAlias.length > 50) {
+        newErrors.customAlias = "Alias must be 50 characters or fewer";
+      }
     }
 
     setErrors(newErrors);
