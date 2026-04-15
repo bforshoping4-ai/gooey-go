@@ -3,6 +3,7 @@ import { Link2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import LinkBuilderForm from "@/components/LinkBuilderForm";
+import ClicksChart from "@/components/ClicksChart";
 import LinksTable from "@/components/LinksTable";
 
 const Index = () => {
