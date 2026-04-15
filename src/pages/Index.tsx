@@ -62,6 +62,7 @@ const Index = () => {
             <LinkBuilderForm onLinkCreated={handleLinkCreated} />
           </div>
 
+          <ClicksChart refreshSignal={refreshSignal} />
           <LinksTable refreshSignal={refreshSignal} />
         </div>
       </main>
