@@ -1,5 +1,16 @@
 import { nanoid } from "nanoid";
 
+const ALLOWED_PROTOCOLS = ["http:", "https:"];
+
+export const isValidHttpUrl = (input: string): boolean => {
+  try {
+    const url = new URL(input);
+    return ALLOWED_PROTOCOLS.includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+
 export const generateShortCode = (length: number = 7): string => {
   console.log("[generateShortCode] Generating random short code with length:", length);
   const code = nanoid(length);
