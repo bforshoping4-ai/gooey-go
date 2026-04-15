@@ -38,32 +38,36 @@ const RedirectPage = () => {
       console.log("[RedirectPage] Link found:", data);
 
       // Build destination URL with UTM params
-      const url = new URL(data.original_url);
-      const utmParams: [string, string | null][] = [
-        ["utm_source", data.utm_source],
-        ["utm_medium", data.utm_medium],
-        ["utm_campaign", data.utm_campaign],
-        ["utm_term", data.utm_term],
-        ["utm_content", data.utm_content],
-      ];
+      let finalUrl: string;
+      try {
+        const url = new URL(data.original_url);
+        const utmParams: [string, string | null][] = [
+          ["utm_source", data.utm_source],
+          ["utm_medium", data.utm_medium],
+          ["utm_campaign", data.utm_campaign],
+          ["utm_term", data.utm_term],
+          ["utm_content", data.utm_content],
+        ];
 
-      utmParams.forEach(([key, value]) => {
-        if (value) {
-          url.searchParams.set(key, value);
-          console.log(`[RedirectPage] Appended ${key}=${value}`);
-        }
-      });
+        utmParams.forEach(([key, value]) => {
+          if (value) {
+            url.searchParams.set(key, value);
+          }
+        });
 
-      const finalUrl = url.toString();
+        finalUrl = url.toString();
+      } catch {
+        console.error("[RedirectPage] Invalid original_url in DB:", data.original_url);
+        setNotFound(true);
+        return;
+      }
+
       console.log("[RedirectPage] Final redirect URL:", finalUrl);
 
       // Increment clicks (fire-and-forget)
-      console.log("[RedirectPage] Incrementing clicks for:", shortCode);
       supabase.rpc("increment_clicks", { p_short_code: shortCode }).then(({ error: rpcError }) => {
         if (rpcError) {
           console.error("[RedirectPage] Failed to increment clicks:", rpcError);
-        } else {
-          console.log("[RedirectPage] Clicks incremented successfully");
         }
       });
 

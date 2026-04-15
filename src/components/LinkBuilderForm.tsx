@@ -56,16 +56,16 @@ const LinkBuilderForm = ({ onLinkCreated }: LinkBuilderFormProps) => {
 
     if (!form.originalUrl.trim()) {
       newErrors.originalUrl = "URL is required";
-    } else {
-      try {
-        new URL(form.originalUrl);
-      } catch {
-        newErrors.originalUrl = "Enter a valid URL (e.g. https://example.com)";
-      }
+    } else if (!isValidHttpUrl(form.originalUrl)) {
+      newErrors.originalUrl = "Enter a valid URL starting with http:// or https://";
     }
 
-    if (form.customAlias && !/^[a-zA-Z0-9_-]+$/.test(form.customAlias)) {
-      newErrors.customAlias = "Only letters, numbers, hyphens, and underscores";
+    if (form.customAlias) {
+      if (!/^[a-zA-Z0-9_-]+$/.test(form.customAlias)) {
+        newErrors.customAlias = "Only letters, numbers, hyphens, and underscores";
+      } else if (form.customAlias.length > 50) {
+        newErrors.customAlias = "Alias must be 50 characters or fewer";
+      }
     }
 
     setErrors(newErrors);

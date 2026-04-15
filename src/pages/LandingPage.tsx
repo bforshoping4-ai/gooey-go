@@ -40,10 +40,8 @@ const LandingPage = () => {
       return;
     }
 
-    try {
-      new URL(url);
-    } catch {
-      setError("Enter a valid URL (e.g. https://example.com)");
+    if (!isValidHttpUrl(url)) {
+      setError("Enter a valid URL starting with http:// or https://");
       return;
     }
 
