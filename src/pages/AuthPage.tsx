@@ -114,8 +114,10 @@ const AuthPage = () => {
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-2">
-          <Link2 className="h-5 w-5 text-primary" />
-          <span className="font-semibold text-foreground text-sm tracking-tight">Sniplink</span>
+          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+            <Link2 className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="font-bold text-foreground text-sm tracking-tight">Sniplink</span>
         </div>
       </header>
 
