@@ -14,53 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      clicks: {
-        Row: {
-          browser: string | null
-          clicked_at: string
-          device_type: string | null
-          id: string
-          ip_city: string | null
-          ip_country: string | null
-          link_id: string
-          os: string | null
-          referrer: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          browser?: string | null
-          clicked_at?: string
-          device_type?: string | null
-          id?: string
-          ip_city?: string | null
-          ip_country?: string | null
-          link_id: string
-          os?: string | null
-          referrer?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          browser?: string | null
-          clicked_at?: string
-          device_type?: string | null
-          id?: string
-          ip_city?: string | null
-          ip_country?: string | null
-          link_id?: string
-          os?: string | null
-          referrer?: string | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clicks_link_id_fkey"
-            columns: ["link_id"]
-            isOneToOne: false
-            referencedRelation: "links"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       links: {
         Row: {
           clicks_count: number

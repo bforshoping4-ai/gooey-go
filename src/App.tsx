@@ -10,7 +10,6 @@ import Index from "./pages/Index.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import RedirectPage from "./pages/RedirectPage.tsx";
-import LinkAnalytics from "./pages/LinkAnalytics.tsx";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +24,6 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/dashboard/links/:id" element={<ProtectedRoute><LinkAnalytics /></ProtectedRoute>} />
             <Route path="/:shortCode" element={<RedirectPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

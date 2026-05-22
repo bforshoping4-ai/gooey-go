@@ -9,26 +9,73 @@ const RedirectPage = () => {
 
   useEffect(() => {
     if (!shortCode) {
+      console.error("[RedirectPage] No short_code in URL params");
       setNotFound(true);
       return;
     }
 
-    const run = async () => {
-      console.log("[RedirectPage] Invoking track-click for:", shortCode);
-      const { data, error } = await supabase.functions.invoke("track-click", {
-        body: { short_code: shortCode },
-      });
+    const handleRedirect = async () => {
+      console.log("[RedirectPage] Looking up short_code:", shortCode);
 
-      if (error || !data?.final_url) {
-        console.error("[RedirectPage] track-click error:", error);
+      const { data, error } = await supabase
+        .from("links")
+        .select("*")
+        .eq("short_code", shortCode)
+        .maybeSingle();
+
+      if (error) {
+        console.error("[RedirectPage] DB query error:", error);
         setNotFound(true);
         return;
       }
 
-      window.location.href = data.final_url;
+      if (!data) {
+        console.warn("[RedirectPage] No link found for short_code:", shortCode);
+        setNotFound(true);
+        return;
+      }
+
+      console.log("[RedirectPage] Link found:", data);
+
+      // Build destination URL with UTM params
+      let finalUrl: string;
+      try {
+        const url = new URL(data.original_url);
+        const utmParams: [string, string | null][] = [
+          ["utm_source", data.utm_source],
+          ["utm_medium", data.utm_medium],
+          ["utm_campaign", data.utm_campaign],
+          ["utm_term", data.utm_term],
+          ["utm_content", data.utm_content],
+        ];
+
+        utmParams.forEach(([key, value]) => {
+          if (value) {
+            url.searchParams.set(key, value);
+          }
+        });
+
+        finalUrl = url.toString();
+      } catch {
+        console.error("[RedirectPage] Invalid original_url in DB:", data.original_url);
+        setNotFound(true);
+        return;
+      }
+
+      console.log("[RedirectPage] Final redirect URL:", finalUrl);
+
+      // Increment clicks (fire-and-forget)
+      supabase.rpc("increment_clicks", { p_short_code: shortCode }).then(({ error: rpcError }) => {
+        if (rpcError) {
+          console.error("[RedirectPage] Failed to increment clicks:", rpcError);
+        }
+      });
+
+      // Redirect
+      window.location.href = finalUrl;
     };
 
-    run();
+    handleRedirect();
   }, [shortCode]);
 
   if (notFound) {
