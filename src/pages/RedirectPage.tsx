@@ -85,7 +85,7 @@ const RedirectPage = () => {
           <h1 className="text-5xl font-bold text-foreground">404</h1>
           <p className="text-lg text-muted-foreground">This short link doesn't exist.</p>
           <a href="/" className="inline-block mt-4 text-sm text-primary hover:underline">
-            ← Back to Sniplink
+            ← Back to LinkJoy
           </a>
         </div>
       </div>

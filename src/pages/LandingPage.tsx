@@ -8,7 +8,7 @@ import { generateShortCode, isValidHttpUrl } from "@/lib/url-utils";
 import { toast } from "sonner";
 
 const ANON_LIMIT = 3;
-const STORAGE_KEY = "sniplink_anon_count";
+const STORAGE_KEY = "linkjoy_anon_count";
 
 const getAnonCount = (): number => {
   try { return parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10); }
@@ -103,7 +103,7 @@ const LandingPage = () => {
             <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
               <Link2 className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-sm tracking-tight">Sniplink</span>
+            <span className="font-bold text-foreground text-sm tracking-tight">LinkJoy</span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild className="text-sm text-muted-foreground hover:text-foreground">
@@ -234,7 +234,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="border-t border-border py-6">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>© 2026 Sniplink. All rights reserved.</span>
+          <span>© 2026 LinkJoy. All rights reserved.</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-foreground transition-colors">Terms</a>
             <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
