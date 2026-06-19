@@ -117,7 +117,7 @@ const AuthPage = () => {
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
             <Link2 className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-foreground text-sm tracking-tight">Sniplink</span>
+          <span className="font-bold text-foreground text-sm tracking-tight">LinkJoy</span>
         </div>
       </header>
 
