@@ -1,44 +1,62 @@
-# المشكلة
+# خطة: إصلاح Google OAuth على Vercel + linkjoy.co
 
-عندما يُنشأ رابط مختصر ثم يُفتح، تظهر صفحة "404 Not Found" في الحالات التالية:
+## المشكلة الجذرية
 
-- المستخدم مسجَّل دخوله ويفتح رابطاً أنشأه بشكل مجهول (`user_id = NULL`).
-- المستخدم مسجَّل دخوله ويفتح رابط مستخدم آخر.
+المشروع مستضاف على **Vercel** (عبر GitHub) مع دومين `linkjoy.co`. الـ Backend هو Lovable Cloud (Supabase).
 
-## السبب الجذري
+`lovable.auth.signInWithOAuth("google")` يفشل بـ 404 لأنه يحتاج إلى مسار `/~oauth/initiate` الخاص بخوادم Lovable — وهذا المسار **غير موجود** على Vercel. Lovable OAuth proxy يعمل فقط على دومينات `.lovable.app` أو دومينات مخصصة مسجلة رسمياً في إعدادات Lovable.
 
-سياسات RLS على جدول `links` للقراءة (SELECT):
+## الحل: Supabase Auth OAuth المباشر
 
-- `anon` → يقرأ كل الروابط (للتوجيه). ✅
-- `authenticated` → يقرأ فقط الصفوف التي `user_id = auth.uid()`. ❌
+Supabase يوفر OAuth flow أصلي (`supabase.auth.signInWithOAuth`) يعمل على **أي دومين** بدون الحاجة إلى Lovable proxy. التغييرات:
 
-نتيجةً لذلك، `RedirectPage` يستعلم بواسطة `short_code` فيرجع `data = null` للمستخدم المسجَّل، فيُعرض 404.
+### 1. `src/pages/AuthPage.tsx` — استبدال Lovable Auth بـ Supabase Auth
 
-# الحل
+- استبدال استيراد `lovable` بـ `supabase`
+- تغيير `handleGoogleSignIn` لاستخدام `supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } })`
+- إعادة التوجيه إلى `data.url` (Google consent screen)
 
-إضافة سياسة SELECT جديدة على `public.links` تسمح للمستخدمين المسجَّلين بقراءة أي رابط لأغراض إعادة التوجيه — مع إبقاء السياسة الحالية كما هي (لا تأثير على لوحة التحكم لأن استعلام `Index.tsx` يفلتر صراحةً بـ `user_id`).
+### 2. `src/hooks/useAuth.tsx` — التقاط OAuth callback
 
-## التغييرات
+- إضافة معالجة لـ `code` parameter في query string عند العودة من Google
+- استدعاء `supabase.auth.exchangeCodeForSession(code)` إذا وجدنا `code`
+- ضمان تحديث `user` و `session` بعد إكمال OAuth
 
-### 1) Migration جديد
+### 3. كيف يعمل التدفق الجديد
 
-```sql
-CREATE POLICY "Authenticated can read links for redirect"
-ON public.links
-FOR SELECT
-TO authenticated
-USING (true);
+```
+المستخدم ←→ linkjoy.co/auth
+        ينقر "Sign in with Google"
+        ↓
+supabase.auth.signInWithOAuth() ←→ Google OAuth
+        ↓
+Google يعيد التوجيه إلى ←→ linkjoy.co/auth?code=xxx
+        ↓
+useAuth() يكتشف code ويستدعي exchangeCodeForSession()
+        ↓
+Session جديدة ←→ user مُحدَّث ←→ توجيه إلى Dashboard
 ```
 
-ملاحظة: سياسة `anon` الحالية تبقى دون تغيير. سياسات INSERT/DELETE لا تتأثر، لذا لا يستطيع أي مستخدم تعديل أو حذف روابط الآخرين. لوحة التحكم تستعلم `.eq("user_id", user.id)` فلن تتسرّب روابط الآخرين إلى الواجهة.
+## ما لا نغيره
 
-# لا تغييرات على الكود
+- Email/Password auth يبقى كما هو (يعمل بالفعل عبر Supabase)
+- Lovable managed auth يُحتفظ به كملف (`src/integrations/lovable/index.ts`) دون استخدامه حالياً
+- إعدادات Supabase Auth (Google provider) تبقى كما هي — لقد فُعلت سابقاً
 
-- لا تعديل على `RedirectPage.tsx` أو `App.tsx` أو التوجيه.
-- لا تعديل على `Index.tsx` أو جدول الروابط.
+## البدائل المرفوضة
 
-# التحقق
+| البديل | السبب |
+|--------|-------|
+| إضافة الدومين في Lovable | يتطلب اشتراك مدفوع (المستخدم رفض) |
+| إخفاء زر Google | سيئ لتجربة المستخدم — الحل الحقيقي أفضل |
+| إعادة توجيه إلى `.lovable.app` | يكسر تجربة العلامة التجارية |
+| Edge Function مخصص | معقد دون داعٍ — Supabase Auth يكفي |
 
-1. تسجيل الدخول، اختصار رابط في الـ Dashboard، فتح الرابط القصير → يجب أن يُعيد التوجيه بنجاح.
-2. تسجيل الخروج، اختصار رابط من الـ Landing Page، تسجيل الدخول، فتح الرابط القصير → يجب أن يعمل بدلاً من 404.
-3. الـ Dashboard يستمر بعرض روابط المستخدم الحالي فقط.
+## التحقق بعد التنفيذ
+
+1. فتح `https://linkjoy.co/auth`
+2. النقر على "Continue with Google"
+3. اختيار حساب Google
+4. العودة إلى `linkjoy.co` والتحقق من تسجيل الدخول
+
+هل تُوافق على تنفيذ هذه الخطة؟
