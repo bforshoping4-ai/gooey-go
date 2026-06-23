@@ -9,10 +9,10 @@ const MaintenancePage = () => {
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            الموقع تحت الصيانة
+            We're Under Maintenance
           </h1>
           <p className="text-sm text-muted-foreground">
-            نعمل على تحسين تجربتك. سنعود قريباً بميزات جديدة.
+            We're working to improve your experience. We'll be back soon with new features.
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
